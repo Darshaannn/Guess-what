@@ -77,8 +77,6 @@ export default function EarthOrbit() {
         }
     });
 
-    const atmosphereUniforms = useMemo(() => ({}), []);
-
     return (
         <group position={[0, -25, -300]}>
             {/* Main Earth Group */}
