@@ -62,9 +62,16 @@ export default function SceneController() {
             targetPosY = THREE.MathUtils.lerp(-25, -25, localP);
             targetPosX = THREE.MathUtils.lerp(0, 5, localP);
         } else if (offset > 0.8) {
-            targetTiltX = -Math.PI / 6;
+            // Landing Animation: Start looking down, then tilt up to ground level
+            const localP = (offset - 0.8) / 0.2;
+            const tiltDown = -Math.PI / 6; // Previous Mumbai tilt
+            const groundLevel = 0; // Look straight ahead
+            targetTiltX = THREE.MathUtils.lerp(tiltDown, groundLevel, localP);
+
             targetPosY = -25;
             targetPosX = 5;
+            // Straighten rotation
+            state.camera.rotation.y = THREE.MathUtils.lerp(state.camera.rotation.y, 0, 0.05);
         } else if (offset > 0.2 && offset <= 0.4) {
             // Transitioning to Solar System
             targetTiltX = -Math.PI / 8;
