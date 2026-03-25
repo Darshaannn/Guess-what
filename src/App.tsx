@@ -10,6 +10,8 @@ import EarthOrbit from './EarthOrbit';
 import MumbaiNight from './MumbaiNight';
 import SceneController from './SceneController';
 import BusinessHome from './BusinessHome';
+import AmbientSound from './AmbientSound';
+import CustomCursor from './CustomCursor';
 
 function ProgressiveContent() {
   const scroll = useScroll();
@@ -78,7 +80,13 @@ function App() {
     <div className="w-full h-screen bg-black relative">
       <Canvas
         camera={{ position: [0, 25, 60], fov: 60 }}
-        gl={{ antialias: false, powerPreference: "high-performance" }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          stencil: false,
+          depth: true,
+          powerPreference: "high-performance"
+        }}
         dpr={[1, 1.5]} // Cap at 1.5x for performance
       >
         <color attach="background" args={['#000000']} />
@@ -89,8 +97,17 @@ function App() {
           <Scroll html style={{ width: '100vw' }}>
             <ProgressIndicator totalSections={6} />
 
-            <div className="absolute top-0 left-0 w-full h-screen flex justify-center items-start pt-12 pointer-events-none">
-              <h1 className="text-white font-light text-center text-sm md:text-lg lg:text-xl tracking-[0.3em] uppercase opacity-90 drop-shadow-lg">The Milky Way</h1>
+            <div className="absolute top-0 left-0 w-full h-screen flex flex-col justify-center items-center pt-12 pointer-events-none">
+              <h1 className="text-white font-light text-center text-sm md:text-lg lg:text-xl tracking-[0.3em] uppercase opacity-90 drop-shadow-lg mb-8">The Milky Way</h1>
+              <button
+                onClick={() => {
+                  const el = scroll.el;
+                  el.scrollTo({ top: 9 * el.clientHeight, behavior: 'smooth' });
+                }}
+                className="pointer-events-auto mt-4 px-8 py-3 rounded-full border border-[#4fc3f7]/40 text-[#4fc3f7] uppercase tracking-[0.3em] text-[10px] md:text-xs bg-[#4fc3f7]/5 hover:bg-[#4fc3f7]/20 transition-all animate-pulse shadow-[0_0_15px_rgba(79,195,247,0.2)]"
+              >
+                View Our Work
+              </button>
             </div>
             <div className="absolute top-[200vh] left-0 w-full h-screen flex justify-center items-end pb-24 pointer-events-none">
               <h1 className="text-white font-light text-center text-sm md:text-lg lg:text-xl tracking-[0.3em] uppercase opacity-90 drop-shadow-lg">Orion Arm</h1>
@@ -118,6 +135,8 @@ function App() {
           <Bloom luminanceThreshold={0.2} mipmapBlur intensity={1.0} />
         </EffectComposer>
       </Canvas>
+      <AmbientSound />
+      <CustomCursor />
       <Loader dataInterpolation={(p) => `Loading Universe... ${p.toFixed(0)}%`} />
     </div>
   );
