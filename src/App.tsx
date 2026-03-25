@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, Suspense } from 'react';
+import { useRef, useState, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ScrollControls, Scroll, useScroll, Loader } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -13,14 +13,6 @@ import BusinessHome from './BusinessHome';
 
 function ProgressiveContent() {
   const scroll = useScroll();
-  const [activeRange, setActiveRange] = useState({ start: 0, end: 1 });
-
-  useFrame(() => {
-    setActiveRange({
-      start: scroll.offset - 0.25,
-      end: scroll.offset + 0.25
-    });
-  });
 
   return (
     <>
