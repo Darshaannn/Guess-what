@@ -6,75 +6,83 @@ export default function SceneController() {
     const scroll = useScroll();
 
     useFrame((state) => {
+        // We have 10 pages total now
+        // Section Mapping (Strict 1-viewport center where sections are visible)
+        // S1: 0, S2: 0.2, S3: 0.4, S4: 0.6, S5: 0.8, S6: 0.9+
         const offset = scroll.offset;
 
-        // Smooth scroll camera transitions matching Solar System quality
         let cameraZ = 60;
         let warpFactor = 0;
 
-        // Transition from Section 1 to 2 (0 to 0.125)
-        if (offset < 0.125) {
-            const p = offset / 0.125;
+        // S1 -> S2 (0 to 0.2)
+        if (offset < 0.2) {
+            const p = offset / 0.2;
             cameraZ = THREE.MathUtils.lerp(60, -95, p);
-            // Peak warp at the middle of the transition
             warpFactor = Math.sin(p * Math.PI) * 1.5;
         }
-        else if (offset < 0.25) {
-            cameraZ = THREE.MathUtils.mapLinear(offset, 0.125, 0.25, -95, -230);
-        } else if (offset < 0.375) {
-            cameraZ = THREE.MathUtils.mapLinear(offset, 0.25, 0.375, -230, -290);
-        } else if (offset < 0.5) {
-            cameraZ = THREE.MathUtils.mapLinear(offset, 0.375, 0.5, -290, -380);
-        } else if (offset < 0.625) {
-            cameraZ = THREE.MathUtils.mapLinear(offset, 0.5, 0.625, -380, -420);
-        } else {
-            cameraZ = -420;
+        // S2 -> S3 (0.2 to 0.4)
+        else if (offset < 0.4) {
+            cameraZ = THREE.MathUtils.mapLinear(offset, 0.2, 0.4, -95, -230);
+        }
+        // S3 -> S4 (0.4 to 0.6)
+        else if (offset < 0.6) {
+            cameraZ = THREE.MathUtils.mapLinear(offset, 0.4, 0.6, -230, -290);
+        }
+        // S4 -> S5 (0.6 to 0.8)
+        else if (offset < 0.8) {
+            cameraZ = THREE.MathUtils.mapLinear(offset, 0.6, 0.8, -290, -380);
+        }
+        // S5 -> S6 (0.8 to 1.0)
+        else {
+            cameraZ = THREE.MathUtils.mapLinear(offset, 0.8, 1.0, -380, -420);
         }
 
-        state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, cameraZ, 0.1);
+        // Smoothing factor (Speed Limiter Logic included in lerp)
+        state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, cameraZ, 0.08);
 
-        // Communicate warp factor to global state or objects if needed
-        // We'll use this factor in OrionArm or MilkyWay to stretch stars
-
-        // Camera Tilt & Orbit
+        // Camera Tilt & Orbit refined for strict steps
         let targetTiltX = 0;
         let targetPosY = 25;
         let targetPosX = 0;
 
-        if (offset > 0.5 && offset <= 0.625) {
-            const localP = (offset - 0.5) / 0.125;
+        if (offset > 0.6 && offset <= 0.8) {
+            // Transitioning to Mumbai
+            const localP = (offset - 0.6) / 0.2;
             targetTiltX = THREE.MathUtils.lerp(-Math.PI / 2, -Math.PI / 6, localP);
             targetPosY = THREE.MathUtils.lerp(20, -25, localP);
             targetPosX = THREE.MathUtils.lerp(0, 5, localP);
-        } else if (offset > 0.625) {
+        } else if (offset > 0.8) {
             targetTiltX = -Math.PI / 6;
             targetPosY = -25;
             targetPosX = 5;
-        } else if (offset > 0.25 && offset <= 0.375) {
+        } else if (offset > 0.2 && offset <= 0.4) {
+            // Transitioning to Solar System
             targetTiltX = -Math.PI / 8;
             targetPosY = 15;
         } else {
-            targetTiltX = THREE.MathUtils.mapLinear(Math.min(offset, 0.125), 0, 0.125, 0, Math.PI * 0.05);
+            targetTiltX = THREE.MathUtils.mapLinear(Math.min(offset, 0.2), 0, 0.2, 0, Math.PI * 0.05);
         }
 
         state.camera.rotation.x = THREE.MathUtils.lerp(state.camera.rotation.x, targetTiltX, 0.05);
-        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetPosY, 0.1);
-        state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetPosX, 0.1);
+        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetPosY, 0.08);
+        state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetPosX, 0.08);
 
-        // Apply Warp speed "motion blur" by FOV trick or post-process check
+        // Warp Effect
         if (state.camera instanceof THREE.PerspectiveCamera) {
-            state.camera.fov = 60 + (warpFactor * 20);
+            // Smoother warp transition
+            const targetFov = 60 + (warpFactor * 20);
+            state.camera.fov = THREE.MathUtils.lerp(state.camera.fov, targetFov, 0.1);
             state.camera.updateProjectionMatrix();
         }
 
         // Background color
         const bg = state.scene.background as THREE.Color;
         if (bg) {
-            if (offset > 0.6) {
-                const p = Math.min((offset - 0.6) * 5, 1.0);
+            if (offset > 0.7) {
+                const p = Math.min((offset - 0.7) * 3, 1.0);
                 bg.copy(new THREE.Color('#080414')).lerp(new THREE.Color('#000000'), p);
             } else {
-                const p = Math.min(Math.max(offset / 0.15, 0), 1);
+                const p = Math.min(Math.max(offset / 0.2, 0), 1);
                 bg.copy(new THREE.Color('#000000')).lerp(new THREE.Color('#080414'), p);
             }
         }
