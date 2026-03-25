@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Billboard, Html, useScroll } from '@react-three/drei';
 import * as THREE from 'three';
@@ -7,27 +7,32 @@ export default function OrionArm() {
     const starsRef = useRef<THREE.Points>(null);
     const fastStarsRef = useRef<THREE.Points>(null);
     const scroll = useScroll();
+    const [data, setData] = useState<{ pos: Float32Array; col: Float32Array } | null>(null);
 
     const isMobile = window.innerWidth < 768;
-    const clusterCount = isMobile ? 30000 : 80000;
+    const clusterCount = isMobile ? 50000 : 80000;
 
-    const [positions, colors] = useMemo(() => {
-        const pos = new Float32Array(clusterCount * 3);
-        const col = new Float32Array(clusterCount * 3);
-        for (let i = 0; i < clusterCount; i++) {
-            const i3 = i * 3;
-            pos[i3] = (Math.random() - 0.5) * 80;
-            pos[i3 + 1] = (Math.random() - 0.5) * 40;
-            pos[i3 + 2] = (Math.random() - 0.5) * 150;
-            const isBlue = Math.random() > 0.5;
-            col[i3] = isBlue ? 0.3 + Math.random() * 0.5 : 0.8 + Math.random() * 0.2;
-            col[i3 + 1] = isBlue ? 0.6 + Math.random() * 0.4 : 0.5 + Math.random() * 0.3;
-            col[i3 + 2] = isBlue ? 1 : 0.4 + Math.random() * 0.3;
-        }
-        return [pos, col];
+    useEffect(() => {
+        const worker = new Worker('/galaxyWorker.js');
+        worker.onmessage = (e) => {
+            setData({ pos: e.data.positions, col: e.data.colors });
+            worker.terminate();
+        };
+        // Orion arm has different color mixing/spread but we can reuse the engine
+        worker.postMessage({
+            particlesCount: clusterCount,
+            branches: 2,
+            radius: 80,
+            spin: 0.5
+        });
+        return () => {
+            worker.terminate();
+            if (starsRef.current) starsRef.current.geometry.dispose();
+            if (fastStarsRef.current) fastStarsRef.current.geometry.dispose();
+        };
     }, [clusterCount]);
 
-    // Streak stars (Warp speed lines)
+    // Streak stars (Warp speed lines) - static generation is fine for small counts
     const streakCount = isMobile ? 200 : 500;
     const streakVertices = useMemo(() => {
         const v = new Float32Array(streakCount * 3);
@@ -41,37 +46,31 @@ export default function OrionArm() {
 
     useFrame(() => {
         const offset = scroll.offset;
-
-        // Warp speed logic: stretch stars into lines when scrolling fast between P1 and P2
-        // We can simulate this by scaling the star group or modifying shader.
-        // Simplifying: Increase Z velocity significantly during transition.
-
         if (starsRef.current) {
             starsRef.current.position.z = (offset * 150) % 100;
         }
 
         if (fastStarsRef.current) {
-            // Transition range p(0 to 0.125)
-            const p = Math.min(offset / 0.125, 1.0);
-            const warp = Math.sin(p * Math.PI) * 20; // Warp stretch factor
-
+            // Logic from P1 to P2 transition (approx offset 0 to 0.2 now with 10 pages)
+            const p = Math.min(offset / 0.2, 1.0);
+            const warp = Math.sin(p * Math.PI) * 20;
             fastStarsRef.current.position.z = (offset * 800) % 200;
-            fastStarsRef.current.scale.z = 1 + warp; // Visual stretch
+            fastStarsRef.current.scale.z = 1 + warp;
         }
     });
 
+    if (!data) return null;
+
     return (
         <group position={[0, -5, -120]}>
-            {/* Dense Background */}
             <points ref={starsRef}>
                 <bufferGeometry>
-                    <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-                    <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+                    <bufferAttribute attach="attributes-position" args={[data.pos, 3]} />
+                    <bufferAttribute attach="attributes-color" args={[data.col, 3]} />
                 </bufferGeometry>
                 <pointsMaterial size={0.06} vertexColors transparent opacity={0.6} depthWrite={false} blending={THREE.AdditiveBlending} />
             </points>
 
-            {/* Warp Streak Particles */}
             <points ref={fastStarsRef}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" args={[streakVertices, 3]} />
@@ -79,9 +78,8 @@ export default function OrionArm() {
                 <pointsMaterial size={0.15} color="#ffffff" transparent opacity={0.9} depthWrite={false} blending={THREE.AdditiveBlending} />
             </points>
 
-            {/* Nebulas */}
             <group>
-                {[...Array(20)].map((_, i) => {
+                {[...Array(isMobile ? 10 : 20)].map((_, i) => {
                     const type = Math.random();
                     const color = type > 0.6 ? '#ff1493' : (type > 0.3 ? '#ff0000' : '#00bfff');
                     return (
@@ -95,7 +93,6 @@ export default function OrionArm() {
                 })}
             </group>
 
-            {/* YOU ARE HERE */}
             <group position={[3, 1, 15]}>
                 <pointLight color="#ffffff" intensity={200} distance={15} decay={2} />
                 <mesh><sphereGeometry args={[0.2, 16, 16]} /><meshBasicMaterial color="#ffffff" /></mesh>
