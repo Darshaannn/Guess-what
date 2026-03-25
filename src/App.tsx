@@ -77,6 +77,12 @@ function FadeOverlay() {
 
 function AppContent() {
   const scroll = useScroll();
+
+  const scrollToBusiness = () => {
+    const el = scroll.el;
+    if (el) el.scrollTo({ top: 9 * el.clientHeight, behavior: 'smooth' });
+  };
+
   return (
     <Scroll html style={{ width: '100vw' }}>
       <ProgressIndicator totalSections={6} />
@@ -84,10 +90,7 @@ function AppContent() {
       <div className="absolute top-0 left-0 w-full h-screen flex flex-col justify-center items-center pt-12 pointer-events-none">
         <h1 className="text-white font-light text-center text-sm md:text-lg lg:text-xl tracking-[0.3em] uppercase opacity-90 drop-shadow-lg mb-8">The Milky Way</h1>
         <button
-          onClick={() => {
-            const el = (scroll as any).el;
-            if (el) el.scrollTo({ top: 9 * el.clientHeight, behavior: 'smooth' });
-          }}
+          onClick={scrollToBusiness}
           className="pointer-events-auto mt-4 px-8 py-3 rounded-full border border-[#4fc3f7]/40 text-[#4fc3f7] uppercase tracking-[0.3em] text-[10px] md:text-xs bg-[#4fc3f7]/5 hover:bg-[#4fc3f7]/20 transition-all animate-pulse shadow-[0_0_15px_rgba(79,195,247,0.2)]"
         >
           View Our Work
@@ -114,7 +117,7 @@ function AppContent() {
 
 function App() {
   return (
-    <div className="w-full h-screen bg-black relative font-['Inter']">
+    <div className="w-full h-screen bg-black relative font-sans">
       <Canvas
         camera={{ position: [0, 25, 60], fov: 60 }}
         gl={{
