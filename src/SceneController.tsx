@@ -45,11 +45,21 @@ export default function SceneController() {
         let targetPosY = 25;
         let targetPosX = 0;
 
-        if (offset > 0.6 && offset <= 0.8) {
-            // Transitioning to Mumbai
+        if (offset > 0.4 && offset <= 0.6) {
+            // Transitioning to Earth
+            const localP = (offset - 0.4) / 0.2;
+            // Zoom into Earth coordinates focusing on India
+            targetTiltX = THREE.MathUtils.lerp(0, -Math.PI / 10, localP);
+            targetPosY = THREE.MathUtils.lerp(25, -25, localP);
+            // Gently orbit to face India (lat/long mapping)
+            const orbitAngle = THREE.MathUtils.lerp(0, -Math.PI * 0.4, localP);
+            state.camera.rotation.y = THREE.MathUtils.lerp(state.camera.rotation.y, orbitAngle, 0.05);
+
+        } else if (offset > 0.6 && offset <= 0.8) {
+            // Transitioning to Mumbai zoom
             const localP = (offset - 0.6) / 0.2;
-            targetTiltX = THREE.MathUtils.lerp(-Math.PI / 2, -Math.PI / 6, localP);
-            targetPosY = THREE.MathUtils.lerp(20, -25, localP);
+            targetTiltX = THREE.MathUtils.lerp(-Math.PI / 10, -Math.PI / 6, localP);
+            targetPosY = THREE.MathUtils.lerp(-25, -25, localP);
             targetPosX = THREE.MathUtils.lerp(0, 5, localP);
         } else if (offset > 0.8) {
             targetTiltX = -Math.PI / 6;

@@ -3,9 +3,12 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
+// 1. Inner Atmosphere Haze
 const atmosphereVertexShader = `
   varying vec3 vNormal;
+  varying vec3 vPosition;
   void main() {
+    vPosition = position;
     vNormal = normalize(normalMatrix * normal);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
@@ -14,32 +17,31 @@ const atmosphereVertexShader = `
 const atmosphereFragmentShader = `
   varying vec3 vNormal;
   void main() {
-    float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
-    gl_FragColor = vec4(0.2, 0.5, 1.0, 1.0) * intensity * 1.5;
+    float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+    gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
   }
 `;
 
-const cloudVertexShader = `
-  varying vec2 vUv;
+// 2. Outer Fresnel Rim Glow
+const fresnelVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
   void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = -mvPosition.xyz;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * mvPosition;
   }
 `;
 
-const cloudFragmentShader = `
-  uniform float time;
-  varying vec2 vUv;
-
-  float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-  }
-
+const fresnelFragmentShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
   void main() {
-    float n = random(vUv * 15.0 + time * 0.02);
-    // Simple noisy pattern to represent clouds over night
-    float alpha = smoothstep(0.7, 1.0, n) * 0.4;
-    gl_FragColor = vec4(0.9, 0.9, 1.0, alpha);
+    vec3 normal = normalize(vNormal);
+    vec3 viewDir = normalize(vViewPosition);
+    float fresnel = pow(1.0 - dot(normal, viewDir), 2.5);
+    gl_FragColor = vec4(0.2, 0.4, 1.0, 1.0) * fresnel * 1.5;
   }
 `;
 
@@ -49,94 +51,105 @@ export default function EarthOrbit() {
     const moonOrbitRef = useRef<THREE.Group>(null);
     const indiaHighlightRef = useRef<THREE.Mesh>(null);
 
-    // Automatically fallback to a procedural coloring if the texture isn't ready
-    const earthMap = useTexture('/assets/earth_night.png');
-    if (earthMap) earthMap.colorSpace = THREE.SRGBColorSpace;
+    // NASA Earth Night Lights (Simulated high-res loading)
+    const earthMap = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_at_night_2048.google.png');
+    const cloudMap = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_2048.png');
 
-    const cloudUniforms = useMemo(() => ({ time: { value: 0 } }), []);
+    if (earthMap) earthMap.colorSpace = THREE.SRGBColorSpace;
+    if (cloudMap) cloudMap.colorSpace = THREE.SRGBColorSpace;
 
     useFrame((_, delta) => {
-        cloudUniforms.time.value += delta;
         if (earthRef.current) {
-            earthRef.current.rotation.y += delta * 0.05; // Earth auto-rotates slowly
+            // Very slow rotation to simulate stability
+            earthRef.current.rotation.y += delta * 0.02;
         }
         if (cloudsRef.current) {
-            cloudsRef.current.rotation.y += delta * 0.07; // Clouds rotate faster
+            cloudsRef.current.rotation.y += delta * 0.025; // Clouds move slightly faster
         }
         if (moonOrbitRef.current) {
-            moonOrbitRef.current.rotation.y += delta * 0.02; // Moon orbits
+            moonOrbitRef.current.rotation.y += delta * 0.01;
         }
         if (indiaHighlightRef.current) {
-            (indiaHighlightRef.current.material as THREE.Material).opacity = 0.5 + Math.sin(Date.now() * 0.003) * 0.5;
+            // Gentle golden pulse
+            const s = 1.0 + Math.sin(Date.now() * 0.002) * 0.1;
+            indiaHighlightRef.current.scale.set(s, s, s);
+            (indiaHighlightRef.current.material as THREE.MeshBasicMaterial).opacity = 0.4 + Math.sin(Date.now() * 0.002) * 0.3;
         }
     });
 
+    const atmosphereUniforms = useMemo(() => ({}), []);
+
     return (
         <group position={[0, -25, -300]}>
-            {/* Earth Group */}
-            <group ref={earthRef}>
+            {/* Main Earth Group */}
+            <group ref={earthRef} rotation={[0.4, 4.2, 0]}> {/* Pre-align to India roughly */}
+                {/* Surface */}
                 <mesh>
                     <sphereGeometry args={[12, 64, 64]} />
-                    <meshStandardMaterial map={earthMap} color={earthMap ? '#ffffff' : '#03122c'} roughness={0.7} metalness={0.1} />
+                    <meshStandardMaterial
+                        map={earthMap}
+                        emissiveMap={earthMap}
+                        emissive={new THREE.Color('#333333')}
+                        emissiveIntensity={1.5}
+                        roughness={0.7}
+                        metalness={0.2}
+                    />
                 </mesh>
 
-                {/* Inner Atmosphere (Haze) */}
+                {/* Atmosphere Layer 1: Inner Haze */}
                 <mesh>
-                    <sphereGeometry args={[12.2, 64, 64]} />
+                    <sphereGeometry args={[12.18, 64, 64]} />
                     <shaderMaterial
                         vertexShader={atmosphereVertexShader}
                         fragmentShader={atmosphereFragmentShader}
                         blending={THREE.AdditiveBlending}
                         transparent={true}
-                        depthWrite={false}
                         side={THREE.BackSide}
                     />
                 </mesh>
 
-                {/* Outer Rim Glow */}
-                <mesh scale={[1.1, 1.1, 1.1]}>
+                {/* Atmosphere Layer 2: Fresnel Rim */}
+                <mesh scale={[1.15, 1.15, 1.15]}>
                     <sphereGeometry args={[12, 64, 64]} />
                     <shaderMaterial
-                        vertexShader={atmosphereVertexShader}
-                        fragmentShader={atmosphereFragmentShader}
+                        vertexShader={fresnelVertexShader}
+                        fragmentShader={fresnelFragmentShader}
                         blending={THREE.AdditiveBlending}
                         transparent={true}
-                        depthWrite={false}
                         side={THREE.BackSide}
                     />
                 </mesh>
 
-                {/* Clouds */}
-                <mesh ref={cloudsRef} scale={[1.025, 1.025, 1.025]}>
-                    <sphereGeometry args={[12, 64, 64]} />
-                    <shaderMaterial
-                        vertexShader={cloudVertexShader}
-                        fragmentShader={cloudFragmentShader}
-                        uniforms={cloudUniforms}
+                {/* Clouds Layer */}
+                <mesh ref={cloudsRef}>
+                    <sphereGeometry args={[12.25, 64, 64]} />
+                    <meshStandardMaterial
+                        alphaMap={cloudMap}
                         transparent={true}
+                        opacity={0.4}
                         depthWrite={false}
                     />
                 </mesh>
 
-                {/* India Golden Pulse */}
-                <mesh ref={indiaHighlightRef as any} position={[8, 4, 8]}>
-                    <sphereGeometry args={[0.5, 16, 16]} />
-                    <meshBasicMaterial color="#ffcc00" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthTest={false} />
-                    <pointLight color="#ffcc00" intensity={50} distance={15} />
+                {/* India/Mumbai Pulse (GPS: 19.0760 N, 72.8777 E converted to sphere coords) */}
+                <mesh ref={indiaHighlightRef as any} position={[8.1, 4.2, 8.5]}>
+                    <sphereGeometry args={[0.6, 32, 32]} />
+                    <meshBasicMaterial color="#ffaa00" transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
+                    <pointLight color="#ff8800" intensity={200} distance={15} decay={2} />
                 </mesh>
             </group>
 
-            {/* Moon Orbit */}
+            {/* Moon */}
             <group ref={moonOrbitRef}>
-                <mesh position={[40, 5, 0]}>
-                    <sphereGeometry args={[3, 32, 32]} />
-                    <meshStandardMaterial color="#aaaaaa" roughness={0.9} />
+                <mesh position={[60, 10, -40]}>
+                    <sphereGeometry args={[2.5, 32, 32]} />
+                    <meshStandardMaterial color="#888888" roughness={0.9} />
                 </mesh>
             </group>
 
-            {/* External Lightning */}
-            <directionalLight position={[100, 20, 50]} intensity={1.5} color="#ffffff" />
-            <ambientLight color="#111122" intensity={0.4} />
+            {/* Cinematic Lighting */}
+            <directionalLight position={[-100, 10, 50]} intensity={1.0} color="#6688ff" /> {/* Soft blue rim light */}
+            <ambientLight color="#050510" intensity={0.2} />
         </group>
     );
 }
