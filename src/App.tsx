@@ -40,11 +40,13 @@ function App() {
             onLightingChange={setLighting}
           />
 
-          {/* Fixed UI Overlays (Direct children of ScrollControls stay fixed) */}
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 100 }}>
-            <ScrollProgress />
-            <ScrollIndicator />
-          </div>
+          {/* Fixed UI Overlays (Restored <Scroll html> to prevent fiber crash) */}
+          <Scroll html>
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 100 }}>
+              <ScrollProgress />
+              <ScrollIndicator />
+            </div>
+          </Scroll>
 
           <RealisticStars />
           <MilkyWayBand particlesCount={particlesCount} />
@@ -61,6 +63,7 @@ function App() {
               <BusinessHome />
             </div>
           </Scroll>
+
 
 
           {/* Post Processing */}
