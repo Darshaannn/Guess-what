@@ -25,8 +25,6 @@ function App() {
     <div style={{ width: '100vw', height: '100vh', background: '#000005' }}>
       <SectionLabels currentSection={currentSection} />
       <AmbientSound />
-      <ScrollProgress />
-      <ScrollIndicator />
 
       <Canvas
         shadows
@@ -42,6 +40,12 @@ function App() {
             onLightingChange={setLighting}
           />
 
+          {/* Fixed UI Overlays (Direct children of ScrollControls stay fixed) */}
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 100 }}>
+            <ScrollProgress />
+            <ScrollIndicator />
+          </div>
+
           <RealisticStars />
           <MilkyWayBand particlesCount={particlesCount} />
           <AmbientDust />
@@ -50,14 +54,14 @@ function App() {
           <EarthOrbit visibility={lighting.earth} />
           <MumbaiNight />
 
-          {/* Business Content Overlay */}
+          {/* Business Content Overlay (Moves with scroll) */}
           <Scroll html>
             <div style={{ width: '100vw' }}>
-              {/* Spacer to push content to the bottom of the scroll (The Landing section) */}
               <div style={{ height: '900vh' }} />
               <BusinessHome />
             </div>
           </Scroll>
+
 
           {/* Post Processing */}
           <EffectComposer>
@@ -73,6 +77,7 @@ function App() {
     </div>
   );
 }
+
 
 
 export default App;
