@@ -1,8 +1,9 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 export default function MilkyWay() {
+    const groupRef = useRef<THREE.Group>(null);
     const pointsRef = useRef<THREE.Points>(null);
     const coreSpriteRef = useRef<THREE.Sprite>(null);
     const [data, setData] = useState<{ pos: Float32Array; col: Float32Array } | null>(null);
@@ -41,8 +42,12 @@ export default function MilkyWay() {
 
     if (!data) return null;
 
+    useEffect(() => {
+        console.log("MilkyWay Mounted. Particle count:", particlesCount);
+    }, []);
+
     return (
-        <group>
+        <group ref={groupRef}>
             <points ref={pointsRef}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" args={[data.pos, 3]} />
