@@ -4,7 +4,6 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // --- SHADERS (Sun) ---
-// [Sun shaders remain the same as before...]
 const sunVertexShader = `
   varying vec2 vUv;
   varying vec3 vPosition;
@@ -19,6 +18,7 @@ const sunVertexShader = `
 
 const sunFragmentShader = `
   uniform float time;
+  uniform float visibility;
   varying vec2 vUv;
   varying vec3 vPosition;
   varying vec3 vNormal;
@@ -68,21 +68,21 @@ const sunFragmentShader = `
     m = m * m;
     return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
   }
-    uniform float visibility;
-    void main() {
-        float n = snoise(vPosition * 0.4 + time * 0.1);
-        n += 0.5 * snoise(vPosition * 0.8 + time * 0.2);
-        n += 0.25 * snoise(vPosition * 1.6 + time * 0.4);
-        float plasma = (n + 1.0) * 0.5;
-        vec3 deepRed = vec3(0.5, 0.0, 0.0);
-        vec3 brightOrange = vec3(1.0, 0.4, 0.0);
-        vec3 brightYellow = vec3(1.0, 0.9, 0.2);
-        vec3 color = mix(deepRed, brightOrange, plasma);
-        color = mix(color, brightYellow, pow(plasma, 3.0));
-        float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-        color += brightOrange * fresnel * 1.2;
-        gl_FragColor = vec4(color, visibility);
-    }
+
+  void main() {
+    float n = snoise(vPosition * 0.4 + time * 0.1);
+    n += 0.5 * snoise(vPosition * 0.8 + time * 0.2);
+    n += 0.25 * snoise(vPosition * 1.6 + time * 0.4);
+    float plasma = (n + 1.0) * 0.5;
+    vec3 deepRed = vec3(0.5, 0.0, 0.0);
+    vec3 brightOrange = vec3(1.0, 0.4, 0.0);
+    vec3 brightYellow = vec3(1.0, 0.9, 0.2);
+    vec3 color = mix(deepRed, brightOrange, plasma);
+    color = mix(color, brightYellow, pow(plasma, 3.0));
+    float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+    color += brightOrange * fresnel * 1.2;
+    gl_FragColor = vec4(color, visibility);
+  }
 `;
 
 const coronaVertexShader = `
@@ -120,7 +120,7 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
         uniforms.time.value = state.clock.elapsedTime;
         uniforms.visibility.value = visibility;
         if (systemGroup.current) {
-            systemGroup.current.rotation.y += delta * 0.01; // Slower system rotation
+            systemGroup.current.rotation.y += delta * 0.01;
         }
         if (asteroidsRef.current) {
             asteroidsRef.current.rotation.y -= delta * 0.02;
@@ -128,16 +128,15 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
     });
 
     const planets = [
-        { name: 'Mercury', radius: 0.3, distance: 15, speed: 1.2, color: '#888888', fact: 'Mercury is the smallest planet and closest to the Sun.' },
-        { name: 'Venus', radius: 0.8, distance: 25, speed: 0.8, color: '#e3bb76', fact: 'Venus is the hottest planet in our solar system.', hasAtmosphere: true },
-        { name: 'Earth', radius: 0.9, distance: 38, speed: 0.6, color: '#2b82c9', fact: 'Earth is the only known planet with life.', hasAtmosphere: true },
-        { name: 'Mars', radius: 0.5, distance: 52, speed: 0.4, color: '#c1440e', fact: 'Mars is known as the Red Planet.', hasCap: true },
-        { name: 'Jupiter', radius: 2.8, distance: 85, speed: 0.2, color: '#d39c7e', fact: 'Jupiter is more than twice as massive as all other planets combined.', hasStripes: true },
-        { name: 'Saturn', radius: 2.4, distance: 115, speed: 0.15, color: '#ead6b8', fact: 'Saturn has the most spectacular ring system.', hasRings: true },
-        { name: 'Uranus', radius: 1.6, distance: 145, speed: 0.1, color: '#d1e7e7', fact: 'Uranus rotates on its side.', hasThinRings: true },
-        { name: 'Neptune', radius: 1.5, distance: 175, speed: 0.08, color: '#5b5ddf', fact: 'Neptune was the first planet located through mathematical calculations.' },
+        { name: 'Mercury', radius: 0.3, distance: 15, speed: 1.2, color: '#aaaaaa', fact: 'Mercury is the smallest planet and closest to the Sun.' },
+        { name: 'Venus', radius: 0.8, distance: 25, speed: 0.8, color: '#e8d5a0', fact: 'Venus is the hottest planet in our solar system.', hasAtmosphere: true },
+        { name: 'Earth', radius: 0.9, distance: 38, speed: 0.6, color: '#2255aa', fact: 'Earth is the only known planet with life.', hasAtmosphere: true, isEarth: true },
+        { name: 'Mars', radius: 0.5, distance: 52, speed: 0.4, color: '#cc4422', fact: 'Mars is known as the Red Planet.', hasCap: true },
+        { name: 'Jupiter', radius: 2.8, distance: 85, speed: 0.2, color: '#c88b3a', fact: 'Jupiter is more than twice as massive as all other planets combined.', hasStripes: true },
+        { name: 'Saturn', radius: 2.4, distance: 115, speed: 0.15, color: '#e8d4a0', fact: 'Saturn has the most spectacular ring system.', hasRings: true },
+        { name: 'Uranus', radius: 1.6, distance: 145, speed: 0.1, color: '#88ddcc', fact: 'Uranus rotates on its side.', hasThinRings: true },
+        { name: 'Neptune', radius: 1.5, distance: 175, speed: 0.08, color: '#3355cc', fact: 'Neptune was the first planet located through mathematical calculations.' },
     ];
-
 
     const asteroidCount = 4000;
     const [asteroidPos, asteroidCol] = useMemo(() => {
@@ -146,7 +145,7 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
         for (let i = 0; i < asteroidCount; i++) {
             const i3 = i * 3;
             const angle = Math.random() * Math.PI * 2;
-            const r = 65 + (Math.random() - 0.5) * 8; // Moved belt between Mars and Jupiter
+            const r = 65 + (Math.random() - 0.5) * 8;
             pos[i3] = Math.cos(angle) * r;
             pos[i3 + 1] = (Math.random() - 0.5) * 2;
             pos[i3 + 2] = Math.sin(angle) * r;
@@ -170,6 +169,7 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
                     vertexShader={sunVertexShader}
                     fragmentShader={sunFragmentShader}
                     uniforms={uniforms}
+                    transparent
                 />
             </mesh>
 
@@ -182,6 +182,7 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
                     side={THREE.BackSide}
                     transparent
                     blending={THREE.AdditiveBlending}
+                    uniforms={uniforms}
                 />
             </mesh>
 
@@ -195,20 +196,21 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
                     transparent
                     opacity={0.3}
                     blending={THREE.AdditiveBlending}
+                    uniforms={uniforms}
                 />
             </mesh>
 
             {/* 4. SOLAR FLARE SPIKES */}
             {flareRotations.map((rot, i) => (
-                <SolarFlare key={i} rotation={rot as any} time={uniforms.time} />
+                <SolarFlare key={i} rotation={rot as any} time={uniforms.time} visibility={visibility} />
             ))}
 
-            {/* 5. SUN LIGHT (Now fades with visibility) */}
+            {/* 5. SUN LIGHT */}
             <pointLight color="#ff8800" intensity={4000 * visibility} distance={1000} decay={1.5} castShadow />
 
-            {/* Planets & Belt */}
+            {/* Planets */}
             {planets.map((planet, index) => (
-                <PlanetOrbit key={index} planet={planet} />
+                <Planet key={index} {...planet} visibility={visibility} />
             ))}
 
             <points ref={asteroidsRef}>
@@ -216,15 +218,15 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
                     <bufferAttribute attach="attributes-position" args={[asteroidPos, 3]} />
                     <bufferAttribute attach="attributes-color" args={[asteroidCol, 3]} />
                 </bufferGeometry>
-                <pointsMaterial size={0.15} vertexColors transparent opacity={0.6} />
+                <pointsMaterial size={0.15} vertexColors transparent opacity={0.6 * visibility} />
             </points>
         </group>
     );
 }
 
-function SolarFlare({ rotation, time }: { rotation: number[], time: { value: number } }) {
-    const flareShader = {
-        uniforms: { time },
+function SolarFlare({ rotation, time, visibility }: { rotation: number[], time: { value: number }, visibility: number }) {
+    const flareShader = useMemo(() => ({
+        uniforms: { time, visibility: { value: visibility } },
         vertexShader: `
             varying vec2 vUv;
             uniform float time;
@@ -238,13 +240,19 @@ function SolarFlare({ rotation, time }: { rotation: number[], time: { value: num
         `,
         fragmentShader: `
             varying vec2 vUv;
+            uniform float visibility;
             void main() {
                 float dist = 1.0 - abs(vUv.x - 0.5) * 2.0;
                 float alpha = pow(dist, 3.0) * (1.0 - vUv.y);
-                gl_FragColor = vec4(1.0, 0.4, 0.0, alpha * 0.7);
+                gl_FragColor = vec4(1.0, 0.4, 0.0, alpha * 0.7 * visibility);
             }
         `
-    };
+    }), [time]);
+
+    // Update visibility uniform
+    useFrame(() => {
+        flareShader.uniforms.visibility.value = visibility;
+    });
 
     return (
         <group rotation={rotation as any}>
@@ -262,92 +270,115 @@ function SolarFlare({ rotation, time }: { rotation: number[], time: { value: num
     );
 }
 
-function PlanetOrbit({ planet }: { planet: any }) {
+function Planet({ radius, distance, speed, color, name, fact, hasAtmosphere, hasStripes, hasRings, hasThinRings, hasCap, visibility }: any) {
+    const planetRef = useRef<THREE.Mesh>(null);
+    const groupRef = useRef<THREE.Group>(null);
     const orbitRef = useRef<THREE.Group>(null);
     const [hovered, setHovered] = useState(false);
 
-    useFrame((_, delta) => {
+    useFrame((state) => {
+        const t = state.clock.elapsedTime * speed * 0.5;
         if (orbitRef.current) {
-            orbitRef.current.rotation.y += delta * planet.speed * 0.2; // Scaled for better visualization
+            orbitRef.current.rotation.y = t;
+        }
+        if (planetRef.current) {
+            planetRef.current.rotation.y += 0.01;
         }
     });
 
     return (
         <group ref={orbitRef}>
-            <group position={[planet.distance, 0, 0]}>
+            <group position={[distance, 0, 0]}>
                 <mesh
+                    ref={planetRef}
                     onPointerOver={() => setHovered(true)}
                     onPointerOut={() => setHovered(false)}
                     castShadow
                     receiveShadow
                 >
-                    <sphereGeometry args={[planet.radius, 32, 32]} />
-                    <meshStandardMaterial
-                        color={planet.color}
-                        roughness={0.7}
-                        metalness={0.1}
-                        emissive={planet.color}
-                        emissiveIntensity={0.1}
-                    />
+                    <sphereGeometry args={[radius, 32, 32]} />
+                    {hasStripes ? (
+                        <shaderMaterial
+                            uniforms={{
+                                color1: { value: new THREE.Color(color) },
+                                color2: { value: new THREE.Color('#8b5a2b') },
+                                visibility: { value: visibility }
+                            }}
+                            vertexShader={`
+                                varying vec2 vUv;
+                                void main() {
+                                    vUv = uv;
+                                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                                }
+                            `}
+                            fragmentShader={`
+                                varying vec2 vUv;
+                                uniform vec3 color1;
+                                uniform vec3 color2;
+                                uniform float visibility;
+                                void main() {
+                                    float stripe = step(0.5, sin(vUv.y * 30.0) * 0.5 + 0.5);
+                                    gl_FragColor = vec4(mix(color1, color2, stripe), visibility);
+                                }
+                            `}
+                            transparent
+                        />
+                    ) : (
+                        <meshStandardMaterial color={color} roughness={0.7} metalness={0.2} transparent opacity={visibility} />
+                    )}
 
-                    {/* Visual Features */}
-                    {planet.hasAtmosphere && (
-                        <mesh scale={[1.1, 1.1, 1.1]}>
-                            <sphereGeometry args={[planet.radius, 32, 32]} />
-                            <meshBasicMaterial color="#88ccff" transparent opacity={0.2} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
+                    {hasAtmosphere && (
+                        <mesh scale={[1.15, 1.15, 1.15]}>
+                            <sphereGeometry args={[radius, 32, 32]} />
+                            <meshPhongMaterial
+                                color={color}
+                                transparent
+                                opacity={0.2 * visibility}
+                                side={THREE.BackSide}
+                                blending={THREE.AdditiveBlending}
+                            />
                         </mesh>
                     )}
 
-                    {planet.hasCap && (
-                        <mesh position={[0, planet.radius * 0.9, 0]}>
-                            <sphereGeometry args={[planet.radius * 0.3, 16, 16, 0, Math.PI * 2, 0, 0.5]} />
-                            <meshBasicMaterial color="#ffffff" />
-                        </mesh>
-                    )}
-
-                    {planet.hasStripes && (
-                        <mesh rotation={[Math.PI / 2, 0, 0]}>
-                            <sphereGeometry args={[planet.radius + 0.01, 32, 32]} />
-                            <meshBasicMaterial color="#d39c7e" transparent opacity={0.4} />
-                            {/* Great Red Spot (Simplified) */}
-                            <mesh position={[planet.radius * 0.7, -planet.radius * 0.3, 0]} scale={[1, 0.6, 1]}>
-                                <sphereGeometry args={[planet.radius * 0.2, 16, 16]} />
-                                <meshBasicMaterial color="#aa4444" />
-                            </mesh>
+                    {hasCap && (
+                        <mesh position={[0, radius * 0.95, 0]}>
+                            <sphereGeometry args={[radius * 0.2, 16, 16]} />
+                            <meshBasicMaterial color="white" transparent opacity={visibility} />
                         </mesh>
                     )}
                 </mesh>
 
                 {/* Rings */}
-                {planet.hasRings && (
-                    <mesh rotation={[Math.PI / 2.2, 0, 0]} castShadow receiveShadow>
-                        <ringGeometry args={[planet.radius * 1.5, planet.radius * 2.8, 128]} />
-                        <meshStandardMaterial color="#c5ab6e" transparent opacity={0.7} side={THREE.DoubleSide} />
-                    </mesh>
-                )}
-                {planet.hasThinRings && (
-                    <mesh rotation={[Math.PI / 1.5, 0, 0]} castShadow receiveShadow>
-                        <ringGeometry args={[planet.radius * 1.8, planet.radius * 1.9, 128]} />
-                        <meshStandardMaterial color="#ffffff" transparent opacity={0.3} side={THREE.DoubleSide} />
+                {(hasRings || hasThinRings) && (
+                    <mesh rotation={[Math.PI / 2.5, 0, 0]}>
+                        <ringGeometry args={[radius * 1.4, radius * 2.2, 64]} />
+                        <meshStandardMaterial
+                            color={color}
+                            transparent
+                            opacity={(hasThinRings ? 0.3 : 0.6) * visibility}
+                            side={THREE.DoubleSide}
+                            metalness={0.5}
+                            roughness={0.4}
+                        />
                     </mesh>
                 )}
 
-                {/* Hover UI */}
-                {hovered && (
-                    <Html distanceFactor={15}>
+                {/* Tooltip */}
+                {hovered && visibility > 0.5 && (
+                    <Html distanceFactor={20}>
                         <div style={{
-                            background: 'rgba(0,0,0,0.8)',
+                            background: 'rgba(0,0,0,0.85)',
                             color: 'white',
                             padding: '10px 15px',
                             borderRadius: '8px',
-                            border: '1px solid #444',
-                            whiteSpace: 'nowrap',
-                            pointerEvents: 'none',
-                            fontFamily: 'sans-serif',
-                            boxShadow: '0 0 20px rgba(0,0,0,0.5)'
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            width: '180px',
+                            backdropFilter: 'blur(10px)',
+                            fontFamily: 'Rajdhani, sans-serif',
+                            pointerEvents: 'none'
                         }}>
-                            <strong style={{ fontSize: '14px', color: '#ffcc00', display: 'block' }}>{planet.name}</strong>
-                            <span style={{ fontSize: '12px', opacity: 0.9 }}>{planet.fact}</span>
+                            <h4 style={{ margin: '0 0 5px 0', color: '#ffcc00', fontSize: '16px', letterSpacing: '1px' }}>{name.toUpperCase()}</h4>
+                            <p style={{ margin: 0, fontSize: '12px', lineHeight: '1.4', opacity: 0.9 }}>{fact}</p>
                         </div>
                     </Html>
                 )}
@@ -355,4 +386,3 @@ function PlanetOrbit({ planet }: { planet: any }) {
         </group>
     );
 }
-

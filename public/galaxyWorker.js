@@ -7,34 +7,43 @@ self.onmessage = (e) => {
     const positions = new Float32Array(particlesCount * 3);
     const colors = new Float32Array(particlesCount * 3);
 
-    const colorInside = { r: 1.0, g: 0.92, b: 0.72 }; // #ffebb8
-    const colorBlue = { r: 0.66, g: 0.78, b: 1.0 }; // #a8c7ff
-    const colorOrange = { r: 1.0, g: 0.54, b: 0.36 }; // #ff8a5c
+    // Warm golden-white core
+    const colorInside = { r: 1.0, g: 0.96, b: 0.8 }; // #fff5cc
+
+    // Star Cohorts
+    const colorBlue = { r: 0.5, g: 0.8, b: 1.0 };   // Hot blue-white
+    const colorYellow = { r: 1.0, g: 0.9, b: 0.5 }; // Warm solar yellow
+    const colorOrange = { r: 1.0, g: 0.4, b: 0.2 }; // Red-orange
 
     for (let i = 0; i < particlesCount; i++) {
         const i3 = i * 3;
-        const distance = Math.pow(Math.random(), 3.0) * radius;
+        const distance = Math.pow(Math.random(), 2.0) * radius; // More distribution outward
         const spinAngle = distance * spin;
         const branchAngle = ((i % branches) / branches) * Math.PI * 2;
 
-        const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 3;
-        const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 1.5;
-        const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 3;
+        const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
+        const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 2;
+        const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
 
         positions[i3] = Math.cos(branchAngle + spinAngle) * distance + randomX;
         positions[i3 + 1] = randomY;
         positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * distance + randomZ;
 
         const mixRatio = distance / radius;
-        const isBlue = Math.random() > 0.6;
+        const rand = Math.random();
 
-        // Simple LERP in worker
-        const target = isBlue ? colorBlue : colorOrange;
+        let target;
+        if (rand > 0.7) target = colorBlue;
+        else if (rand > 0.3) target = colorYellow;
+        else target = colorOrange;
+
+        // Dynamic Color Mixing
         colors[i3] = colorInside.r + (target.r - colorInside.r) * mixRatio;
         colors[i3 + 1] = colorInside.g + (target.g - colorInside.g) * mixRatio;
         colors[i3 + 2] = colorInside.b + (target.b - colorInside.b) * mixRatio;
     }
 
-    // Transfer buffers to main thread with zero copy
+    // Transfer buffers
     self.postMessage({ positions, colors }, [positions.buffer, colors.buffer]);
 };
+

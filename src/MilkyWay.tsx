@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -46,8 +46,25 @@ export default function MilkyWay() {
         console.log("MilkyWay Mounted. Particle count:", particlesCount);
     }, []);
 
+    // Generate Nebula Patches
+    const nebulaData = useMemo(() => {
+        const count = 5;
+        const pts = [];
+        for (let i = 0; i < count; i++) {
+            const r = Math.random() * 40;
+            const theta = Math.random() * Math.PI * 2;
+            pts.push({
+                pos: [Math.cos(theta) * r, (Math.random() - 0.5) * 5, Math.sin(theta) * r],
+                color: Math.random() > 0.5 ? "#ff0066" : "#ee3322",
+                size: 20 + Math.random() * 30
+            });
+        }
+        return pts;
+    }, []);
+
     return (
         <group ref={groupRef}>
+            {/* Stars */}
             <points ref={pointsRef}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" args={[data.pos, 3]} />
@@ -64,16 +81,31 @@ export default function MilkyWay() {
                 />
             </points>
 
+            {/* Nebula Clouds */}
+            {nebulaData.map((neb: any, i: number) => (
+                <sprite key={i} position={neb.pos as any} scale={neb.size}>
+                    <spriteMaterial
+                        color={neb.color}
+                        transparent
+                        opacity={0.05}
+                        blending={THREE.AdditiveBlending}
+                        depthWrite={false}
+                    />
+                </sprite>
+            ))}
+
+            {/* Core Glow */}
             <sprite ref={coreSpriteRef as any} position={[0, 0, 0]}>
                 <spriteMaterial
                     blending={THREE.AdditiveBlending}
-                    color="#ffcc88"
+                    color="#fff5cc"
                     transparent
-                    opacity={0.6}
+                    opacity={0.7}
                 />
             </sprite>
 
-            <pointLight color="#ffaa00" intensity={1000} distance={50} decay={2} />
+            <pointLight color="#fff5cc" intensity={1500} distance={100} decay={2} />
         </group>
     );
 }
+
