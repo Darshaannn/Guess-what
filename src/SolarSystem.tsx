@@ -138,7 +138,8 @@ export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
         { name: 'Neptune', radius: 1.5, distance: 175, speed: 0.08, color: '#3355cc', fact: 'Neptune was the first planet located through mathematical calculations.' },
     ];
 
-    const asteroidCount = 4000;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const asteroidCount = isMobile ? 2000 : 4000;
     const [asteroidPos, asteroidCol] = useMemo(() => {
         const pos = new Float32Array(asteroidCount * 3);
         const col = new Float32Array(asteroidCount * 3);
@@ -272,7 +273,6 @@ function SolarFlare({ rotation, time, visibility }: { rotation: number[], time: 
 
 function Planet({ radius, distance, speed, color, name, fact, hasAtmosphere, hasStripes, hasRings, hasThinRings, hasCap, visibility }: any) {
     const planetRef = useRef<THREE.Mesh>(null);
-    const groupRef = useRef<THREE.Group>(null);
     const orbitRef = useRef<THREE.Group>(null);
     const [hovered, setHovered] = useState(false);
 

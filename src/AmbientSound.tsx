@@ -14,8 +14,7 @@ export default function AmbientSound() {
         gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
         gainNode.connect(ctx.destination);
 
-        // Deep Space Drone: Low frequency layers
-        const freqs = [432, 216, 108, 54, 27]; // Harmonically related deep frequencies
+        const freqs = [432, 216, 108, 54, 27];
         freqs.forEach(f => {
             const osc = ctx.createOscillator();
             osc.type = 'sine';
@@ -39,30 +38,32 @@ export default function AmbientSound() {
 
     const toggleSound = () => {
         if (!audioCtxRef.current) initAudio();
+        const ctx = audioCtxRef.current!;
 
         if (isPlaying) {
-            gainNodeRef.current?.gain.exponentialRampToValueAtTime(0.0001, audioCtxRef.current!.currentTime + 1);
+            gainNodeRef.current?.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1);
+            setIsPlaying(false);
         } else {
-            if (audioCtxRef.current?.state === 'suspended') audioCtxRef.current.resume();
-            gainNodeRef.current?.gain.exponentialRampToValueAtTime(0.05, audioCtxRef.current!.currentTime + 1);
+            if (ctx.state === 'suspended') ctx.resume();
+            gainNodeRef.current?.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 1);
+            setIsPlaying(true);
         }
-        setIsPlaying(!isPlaying);
     };
 
     return (
         <button
             onClick={toggleSound}
-            className="fixed top-6 right-20 z-[100] p-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-all group scale-75 md:scale-100"
-            aria-label="Toggle Ambient Space Drone"
+            className="fixed top-6 right-20 z-[100] p-4 rounded-full bg-black/40 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all group scale-75 md:scale-100 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
         >
             {isPlaying ? (
-                <Volume2 className="w-5 h-5 text-[#4fc3f7] animate-pulse" />
+                <Volume2 className="w-6 h-6 text-[#4fc3f7] drop-shadow-[0_0_8px_#4fc3f7]" />
             ) : (
-                <VolumeX className="w-5 h-5 text-gray-500" />
+                <VolumeX className="w-6 h-6 text-white/40" />
             )}
-            <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-black/60 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap uppercase tracking-[0.2em]">
-                {isPlaying ? 'System Audio Active' : 'Engage Ambient Drone'}
-            </span>
+            <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-black/80 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-all transform scale-90 group-hover:scale-100 whitespace-nowrap uppercase tracking-[0.3em] font-['Rajdhani'] border border-white/5">
+                {isPlaying ? 'AMBIENT DRONE ACTIVE' : 'ENGAGE DEEP SPACE AUDIO'}
+            </div>
         </button>
     );
 }
+

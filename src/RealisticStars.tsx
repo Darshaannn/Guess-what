@@ -58,7 +58,8 @@ const fragmentShader = `
 `;
 
 export default function RealisticStars() {
-    const starCount = 80000;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const starCount = isMobile ? 40000 : 80000;
     const geometryRef = useRef<THREE.BufferGeometry>(null);
     const materialRef = useRef<THREE.ShaderMaterial>(null);
 

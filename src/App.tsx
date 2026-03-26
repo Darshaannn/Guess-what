@@ -12,8 +12,12 @@ import EarthOrbit from './EarthOrbit';
 import MumbaiNight from './MumbaiNight';
 import BusinessHome from './BusinessHome';
 import AmbientSound from './AmbientSound';
+import ScrollProgress from './ScrollProgress';
+import ScrollIndicator from './ScrollIndicator';
 
 function App() {
+  const isMobile = window.innerWidth < 768;
+  const particlesCount = isMobile ? 75000 : 150000;
   const [currentSection, setCurrentSection] = useState("Deep Space");
   const [lighting, setLighting] = useState({ bloom: 1.2, sun: 1.0, earth: 1.0 });
 
@@ -21,6 +25,8 @@ function App() {
     <div style={{ width: '100vw', height: '100vh', background: '#000005' }}>
       <SectionLabels currentSection={currentSection} />
       <AmbientSound />
+      <ScrollProgress />
+      <ScrollIndicator />
 
       <Canvas
         shadows
@@ -37,7 +43,7 @@ function App() {
           />
 
           <RealisticStars />
-          <MilkyWayBand />
+          <MilkyWayBand particlesCount={particlesCount} />
           <AmbientDust />
 
           <SolarSystem visibility={lighting.sun} />

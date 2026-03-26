@@ -1,13 +1,11 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 
-export default function MilkyWayBand() {
-    const count = 15000;
-
+export default function MilkyWayBand({ particlesCount = 15000 }: { particlesCount?: number }) {
     const [positions] = useMemo(() => {
-        const pos = new Float32Array(count * 3);
+        const pos = new Float32Array(particlesCount * 3);
 
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < particlesCount; i++) {
             // Elongated band logic
             const angle = (Math.random() - 0.5) * 4.0; // Span
             const dist = (Math.random() - 0.5) * 50.0; // Width of band
@@ -22,7 +20,8 @@ export default function MilkyWayBand() {
             pos[i * 3 + 2] = depth;
         }
         return [pos];
-    }, []);
+    }, [particlesCount]);
+
 
     return (
         <points>
