@@ -1,197 +1,91 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
-import { motion, type Variants } from 'framer-motion';
-import { Globe, MapPin, ArrowRight, Star } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
-
-const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
-    const letters = Array.from(text);
-    const container: Variants = {
-        hidden: { opacity: 0 },
-        visible: (i: number = 1) => ({
-            opacity: 1,
-            transition: { staggerChildren: 0.08, delayChildren: delay * i },
-        }),
-    };
-
-    const child: Variants = {
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                type: "spring",
-                damping: 12,
-                stiffness: 200,
-            },
-        },
-        hidden: {
-            opacity: 0,
-            y: 10,
-        },
-    };
-
-    return (
-        <motion.h1
-            style={{ display: "flex", overflow: "hidden" }}
-            variants={container}
-            initial="hidden"
-            whileInView="visible"
-            className="text-5xl md:text-8xl font-['Rajdhani'] font-bold tracking-tight text-[#4fc3f7] drop-shadow-[0_0_15px_rgba(79,195,247,0.5)]"
-        >
-            {letters.map((letter, index) => (
-                <motion.span variants={child} key={index}>
-                    {letter === " " ? "\u00A0" : letter}
-                </motion.span>
-            ))}
-        </motion.h1>
-    );
-};
+import { motion } from 'framer-motion';
+import { ArrowRight, Star, Monitor, Zap, Code, Target } from 'lucide-react';
 
 export default function BusinessHome() {
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const ctx = gsap.context(() => {
-            // Smooth reveal for sections
-            gsap.fromTo('.reveal-up',
-                { opacity: 0, y: 50 },
-                {
-                    opacity: 1, y: 0, duration: 1, stagger: 0.2,
-                    scrollTrigger: {
-                        trigger: '.reveal-up',
-                        start: 'top 85%',
-                    }
-                }
-            );
-        }, containerRef);
-        return () => ctx.revert();
-    }, []);
-
     return (
-        <div ref={containerRef} className="bg-[#07090f] text-white min-h-[400vh] w-full font-['Inter'] relative overflow-hidden">
-
-            {/* Cosmic Background Context */}
-            <div className="fixed inset-0 pointer-events-none opacity-5 -z-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
-
-            {/* Landing Skyline Silhouette */}
-            <div className="absolute top-0 left-0 w-full h-[30vh] overflow-hidden pointer-events-none">
-                <svg viewBox="0 0 1000 200" className="w-full h-full fill-[#0a1224] opacity-80" preserveAspectRatio="none">
-                    <path d="M0,200 L0,140 L40,140 L40,110 L70,110 L70,150 L110,150 L110,80 L150,80 L150,110 L190,110 L190,60 L240,60 L240,90 L290,90 L290,130 L340,130 L340,70 L390,70 L390,120 L440,120 L440,40 L470,40 L470,20 L510,20 L510,50 L550,50 L550,90 L590,90 L590,70 L640,70 L640,110 L690,110 L690,90 L740,90 L740,150 L790,150 L790,100 L840,100 L840,130 L890,130 L890,100 L940,100 L940,150 L1000,150 L1000,200 Z" />
-                </svg>
-            </div>
-
-            {/* HERO LANDING */}
-            <section className="h-screen flex flex-col justify-center items-center px-6 relative">
-                <TypewriterText text="COSMIC CREATIVE" />
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 1 }}
-                    className="mt-8 text-lg md:text-2xl font-light text-blue-200/60 max-w-2xl text-center tracking-widest"
-                >
-                    MISSION COMPLETE: LANDED IN <span className="text-white font-medium">MUMBAI</span>
-                </motion.p>
+        <div className="w-full text-white font-['Rajdhani']">
+            {/* HERO SECTION */}
+            <section className="h-screen flex flex-col justify-center items-start px-12 md:px-24 relative overflow-hidden">
                 <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="absolute bottom-12 opacity-30"
+                    initial={{ opacity: 0, x: -50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                 >
-                    <ArrowRight className="rotate-90 w-8 h-8" />
+                    <h1 className="text-6xl md:text-9xl font-extralight tracking-[0.15em] leading-tight mb-4">
+                        WE CREATE <br />
+                        <span className="font-bold text-[#4fc3f7] drop-shadow-[0_0_20px_rgba(79,195,247,0.5)]">FROM MUMBAI</span>
+                    </h1>
+
+                    <div className="w-64 h-px bg-gradient-to-r from-transparent via-[#4fc3f7] to-transparent relative mt-8 mb-8 overflow-hidden">
+                        <motion.div
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                            className="absolute inset-0 bg-white opacity-50 shadow-[0_0_10px_#fff]"
+                        />
+                    </div>
+
+                    <p className="text-xl md:text-3xl font-light text-blue-200/60 max-w-2xl tracking-[0.2em] uppercase">
+                        Digital experiences that travel at the speed of light
+                    </p>
                 </motion.div>
             </section>
 
-            {/* SERVICES - GLASSMORPHISM */}
-            <section className="min-h-screen py-24 px-8 max-w-7xl mx-auto">
-                <h2 className="text-4xl md:text-6xl font-['Rajdhani'] mb-20 text-center text-[#4fc3f7]">Services</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {['Systems Design', 'Brand Identity', 'Fullstack Dev', 'Growth Strategy'].map((s, i) => (
+            {/* SERVICES SECTION */}
+            <section className="min-h-screen py-32 px-12 md:px-24">
+                <h2 className="text-4xl md:text-6xl font-bold mb-24 tracking-[0.3em] uppercase opacity-20">Systems & Services</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                        { name: 'Web Design', icon: <Monitor />, desc: 'Next-gen interfaces that define the future.' },
+                        { name: 'Branding', icon: <Zap />, desc: 'Atomic identities for celestial growth.' },
+                        { name: 'Development', icon: <Code />, desc: 'Performant architectures built for scale.' },
+                        { name: 'Strategy', icon: <Target />, desc: 'Data-driven roadmaps to the next frontier.' }
+                    ].map((s, i) => (
                         <motion.div
                             key={i}
-                            whileHover={{ scale: 1.05, borderColor: 'rgba(79, 195, 247, 0.8)' }}
-                            className="p-10 rounded-2xl bg-[#ffffff03] backdrop-blur-xl border border-white/10 hover:shadow-[0_0_40px_rgba(79,195,247,0.15)] transition-all duration-500 group relative overflow-hidden"
+                            whileHover={{ y: -10, borderColor: 'rgba(79, 195, 247, 0.8)' }}
+                            className="p-10 rounded-2xl bg-[#ffffff03] backdrop-blur-2xl border border-white/10 hover:shadow-[0_0_40px_rgba(79,195,247,0.15)] transition-all duration-500 group relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-                                <Star className="w-12 h-12" />
+                            <div className="text-[#4fc3f7] mb-8 scale-150 origin-left opacity-60 group-hover:opacity-100 transition-opacity">
+                                {s.icon}
                             </div>
-                            <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center mb-8">
-                                <ArrowRight className="-rotate-45 text-[#4fc3f7]" />
-                            </div>
-                            <h3 className="text-2xl font-['Rajdhani'] font-bold mb-4">{s}</h3>
-                            <p className="text-gray-400 font-light leading-relaxed">
-                                Engineered for the next frontier of digital presence.
+                            <h3 className="text-2xl font-bold mb-4 tracking-widest uppercase">{s.name}</h3>
+                            <p className="text-gray-400 font-light leading-relaxed text-sm tracking-wide">
+                                {s.desc}
                             </p>
-                        </motion.div>
-                    ))}
-                </div>
-            </section>
-
-            {/* PORTFOLIO - LOW GRAVITY BOBBING */}
-            <section className="min-h-screen py-24 px-8 bg-black/20">
-                <h2 className="text-4xl md:text-6xl font-['Rajdhani'] mb-24 text-center">Orbiting Projects</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
-                    {[1, 2, 3].map((p, i) => (
-                        <motion.div
-                            key={i}
-                            animate={{ y: [0, -15, 0] }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 4 + i,
-                                ease: "easeInOut"
-                            }}
-                            whileHover={{ y: 0, scale: 1.05, transition: { duration: 0.3 } }}
-                            className="bg-[#0a1224] rounded-3xl p-1 border border-white/5 shadow-2xl relative group cursor-pointer"
-                        >
-                            <div className="aspect-[4/5] bg-gray-900 rounded-[1.4rem] overflow-hidden flex items-center justify-center">
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#4fc3f7]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <span className="text-7xl font-bold opacity-10">0{p}</span>
-                            </div>
-                            <div className="p-8">
-                                <p className="text-[#4fc3f7] uppercase tracking-[0.3em] text-xs font-bold mb-2">Project Phase {i + 1}</p>
-                                <h3 className="text-3xl font-['Rajdhani']">Project Alpha-{p}</h3>
+                            <div className="absolute -bottom-1 -right-1 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Star className="w-24 h-24" />
                             </div>
                         </motion.div>
                     ))}
                 </div>
+
+                <div className="mt-32 flex justify-center">
+                    <motion.button
+                        whileHover={{
+                            scale: 1.05,
+                            backgroundColor: '#4fc3f7',
+                            color: '#07090f',
+                            boxShadow: '0 0 50px rgba(79, 195, 247, 0.6)'
+                        }}
+                        className="px-12 py-6 rounded-full border border-[#4fc3f7] text-[#4fc3f7] font-bold tracking-[0.4em] text-xl transition-all flex items-center gap-4 bg-transparent backdrop-blur-md"
+                    >
+                        START A PROJECT <ArrowRight />
+                    </motion.button>
+                </div>
             </section>
 
-            {/* CONTACT & FOOTER */}
-            <section className="min-h-screen flex flex-col justify-between py-24 px-8 max-w-4xl mx-auto">
-                <div className="reveal-up text-center mb-16">
-                    <h2 className="text-5xl md:text-7xl font-['Rajdhani'] mb-12">Contact Hub</h2>
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-12 text-blue-200/60">
-                        <div className="flex items-center gap-4">
-                            <Globe className="w-8 h-8 text-[#4fc3f7]" />
-                            <span className="text-xl font-light">Mumbai, India</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <MapPin className="w-8 h-8 text-[#4fc3f7]" />
-                            <span className="text-xl font-light tracking-widest">18.9°N, 72.8°E</span>
-                        </div>
+            {/* FOOTER */}
+            <footer className="py-24 px-12 md:px-24 border-t border-white/5 bg-black/40 backdrop-blur-xl">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-12 text-xs tracking-[0.4em] text-white/20 uppercase">
+                    <div>© 2026 Cosmic Creative // Ground Station Mumbai</div>
+                    <div className="flex gap-12">
+                        <span>18.9186° N, 72.8333° E</span>
+                        <span className="text-[#4fc3f7] opacity-60 cursor-pointer hover:opacity-100 transition-opacity">Launch Protocol</span>
                     </div>
                 </div>
-
-                <div className="bg-[#0a1224]/80 backdrop-blur-2xl border border-white/10 p-12 rounded-[2.5rem] shadow-3xl reveal-up">
-                    <form className="flex flex-col gap-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <input type="text" placeholder="IDENTITY" className="bg-transparent border-b border-white/10 focus:border-[#4fc3f7] py-4 outline-none transition-all font-['Rajdhani'] tracking-widest" />
-                            <input type="email" placeholder="COMMS ENCRYPTION" className="bg-transparent border-b border-white/10 focus:border-[#4fc3f7] py-4 outline-none transition-all font-['Rajdhani'] tracking-widest" />
-                        </div>
-                        <textarea placeholder="MISSION BRIEFING" rows={4} className="bg-transparent border-b border-white/10 focus:border-[#4fc3f7] py-4 outline-none transition-all font-['Rajdhani'] tracking-widest resize-none"></textarea>
-                        <motion.button
-                            whileHover={{ backgroundColor: '#4fc3f7', color: '#07090f', boxShadow: '0 0 50px rgba(79, 195, 247, 0.4)' }}
-                            className="border border-[#4fc3f7] text-[#4fc3f7] py-6 font-['Rajdhani'] font-bold tracking-[0.5em] text-xl transition-all"
-                        >
-                            INITIATE CONTACT
-                        </motion.button>
-                    </form>
-                </div>
-
-                <footer className="mt-32 text-center text-xs tracking-[0.4em] text-white/20 uppercase">
-                    © 2026 Cosmic Creative // Ground Station Mumbai // 18.9186N 72.8333E
-                </footer>
-            </section>
+            </footer>
         </div>
     );
 }
+

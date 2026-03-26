@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { ScrollControls } from '@react-three/drei';
+import { ScrollControls, Scroll } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import RealisticStars from './RealisticStars';
 import MilkyWayBand from './MilkyWayBand';
@@ -28,7 +28,7 @@ function App() {
         gl={{ antialias: false, stencil: false, depth: true }}
       >
         {/* Background transition to true Landing black #000008 */}
-        <color attach="background" args={[lighting.sun < 0.1 ? '#000008' : '#000005']} />
+        <color attach="background" args={[lighting.sun < 0.1 ? '#07090f' : '#000005']} />
 
         <ScrollControls pages={10} damping={0.3}>
           <SceneController
@@ -44,6 +44,15 @@ function App() {
           <EarthOrbit visibility={lighting.earth} />
           <MumbaiNight />
 
+          {/* Business Content Overlay */}
+          <Scroll html>
+            <div style={{ width: '100vw' }}>
+              {/* Spacer to push content to the bottom of the scroll (The Landing section) */}
+              <div style={{ height: '900vh' }} />
+              <BusinessHome />
+            </div>
+          </Scroll>
+
           {/* Post Processing */}
           <EffectComposer>
             <Bloom
@@ -55,10 +64,9 @@ function App() {
           </EffectComposer>
         </ScrollControls>
       </Canvas>
-
-      <BusinessHome />
     </div>
   );
 }
+
 
 export default App;
