@@ -15,6 +15,7 @@ import AmbientSound from './AmbientSound';
 
 function App() {
   const [currentSection, setCurrentSection] = useState("Deep Space");
+  const [lighting, setLighting] = useState({ bloom: 1.2, sun: 1.0 });
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000005' }}>
@@ -26,23 +27,27 @@ function App() {
         camera={{ position: [0, 25, 60], fov: 60 }}
         gl={{ antialias: false, stencil: false, depth: true }}
       >
-        <color attach="background" args={['#000005']} />
+        {/* Background transition to true Landing black #000008 */}
+        <color attach="background" args={[lighting.sun < 0.1 ? '#000008' : '#000005']} />
 
         <ScrollControls pages={10} damping={0.3}>
-          <SceneController onSectionChange={setCurrentSection} />
+          <SceneController
+            onSectionChange={setCurrentSection}
+            onLightingChange={setLighting}
+          />
 
           <RealisticStars />
           <MilkyWayBand />
           <AmbientDust />
 
-          <SolarSystem />
+          <SolarSystem visibility={lighting.sun} />
           <EarthOrbit />
           <MumbaiNight />
 
           {/* Post Processing */}
           <EffectComposer>
             <Bloom
-              intensity={1.2}
+              intensity={lighting.bloom}
               luminanceThreshold={0.3}
               luminanceSmoothing={0.9}
               radius={0.4}
@@ -57,4 +62,3 @@ function App() {
 }
 
 export default App;
-

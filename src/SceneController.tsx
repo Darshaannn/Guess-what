@@ -4,9 +4,10 @@ import * as THREE from 'three';
 
 interface SceneControllerProps {
     onSectionChange: (name: string) => void;
+    onLightingChange: (data: { bloom: number, sun: number }) => void;
 }
 
-export default function SceneController({ onSectionChange }: SceneControllerProps) {
+export default function SceneController({ onSectionChange, onLightingChange }: SceneControllerProps) {
     const scroll = useScroll();
 
     useFrame((state) => {
@@ -21,14 +22,26 @@ export default function SceneController({ onSectionChange }: SceneControllerProp
         else if (offset < 0.9) sectionName = "Mumbai Orbit";
         else sectionName = "The Landing";
 
-        // Call the prop (wrapped in useEffect logic to prevent render loops)
-        // We'll handle state update in the parent via a ref or similar if needed, 
-        // but for now let's just use it sparingly.
         onSectionChange(sectionName);
 
-        // 2. Camera Positioning (Smooth Lerping)
+        // 2. Lighting Modulation (Visual Washout Fix)
+        let bloomInt = 1.2;
+        let sunVis = 1.0;
+
+        if (offset > 0.8) {
+            // Transition from Mumbai Orbit (0.9) to Landing (1.0)
+            // Yellow fades to black over 0.5s equivalent scroll
+            const p = (offset - 0.8) / 0.2;
+            bloomInt = THREE.MathUtils.lerp(1.2, 0.3, Math.min(p * 2, 1));
+            sunVis = THREE.MathUtils.lerp(1.0, 0, Math.min(p * 2, 1));
+        }
+
+        onLightingChange({ bloom: bloomInt, sun: sunVis });
+
+        // 3. Camera Positioning (Smooth Lerping)
         let cameraZ = 60;
         let warpFactor = 0;
+
 
         if (offset < 0.2) {
             const p = offset / 0.2;

@@ -68,20 +68,21 @@ const sunFragmentShader = `
     m = m * m;
     return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
   }
-  void main() {
-    float n = snoise(vPosition * 0.4 + time * 0.1);
-    n += 0.5 * snoise(vPosition * 0.8 + time * 0.2);
-    n += 0.25 * snoise(vPosition * 1.6 + time * 0.4);
-    float plasma = (n + 1.0) * 0.5;
-    vec3 deepRed = vec3(0.5, 0.0, 0.0);
-    vec3 brightOrange = vec3(1.0, 0.4, 0.0);
-    vec3 brightYellow = vec3(1.0, 0.9, 0.2);
-    vec3 color = mix(deepRed, brightOrange, plasma);
-    color = mix(color, brightYellow, pow(plasma, 3.0));
-    float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-    color += brightOrange * fresnel * 1.2;
-    gl_FragColor = vec4(color, 1.0);
-  }
+    uniform float visibility;
+    void main() {
+        float n = snoise(vPosition * 0.4 + time * 0.1);
+        n += 0.5 * snoise(vPosition * 0.8 + time * 0.2);
+        n += 0.25 * snoise(vPosition * 1.6 + time * 0.4);
+        float plasma = (n + 1.0) * 0.5;
+        vec3 deepRed = vec3(0.5, 0.0, 0.0);
+        vec3 brightOrange = vec3(1.0, 0.4, 0.0);
+        vec3 brightYellow = vec3(1.0, 0.9, 0.2);
+        vec3 color = mix(deepRed, brightOrange, plasma);
+        color = mix(color, brightYellow, pow(plasma, 3.0));
+        float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+        color += brightOrange * fresnel * 1.2;
+        gl_FragColor = vec4(color, visibility);
+    }
 `;
 
 const coronaVertexShader = `
@@ -94,21 +95,30 @@ const coronaVertexShader = `
 
 const coronaFragmentShader = `
   varying vec3 vNormal;
+  uniform float visibility;
   void main() {
     float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
-    gl_FragColor = vec4(1.0, 0.4, 0.0, 1.0) * intensity;
+    gl_FragColor = vec4(1.0, 0.4, 0.0, visibility) * intensity;
   }
 `;
 
 // --- COMPONENTS ---
 
-export default function SolarSystem() {
+interface SolarSystemProps {
+    visibility?: number;
+}
+
+export default function SolarSystem({ visibility = 1 }: SolarSystemProps) {
     const systemGroup = useRef<THREE.Group>(null);
     const asteroidsRef = useRef<THREE.Points>(null);
-    const uniforms = useMemo(() => ({ time: { value: 0 } }), []);
+    const uniforms = useMemo(() => ({
+        time: { value: 0 },
+        visibility: { value: 1 }
+    }), []);
 
     useFrame((state, delta) => {
         uniforms.time.value = state.clock.elapsedTime;
+        uniforms.visibility.value = visibility;
         if (systemGroup.current) {
             systemGroup.current.rotation.y += delta * 0.01; // Slower system rotation
         }
@@ -127,6 +137,7 @@ export default function SolarSystem() {
         { name: 'Uranus', radius: 1.6, distance: 145, speed: 0.1, color: '#d1e7e7', fact: 'Uranus rotates on its side.', hasThinRings: true },
         { name: 'Neptune', radius: 1.5, distance: 175, speed: 0.08, color: '#5b5ddf', fact: 'Neptune was the first planet located through mathematical calculations.' },
     ];
+
 
     const asteroidCount = 4000;
     const [asteroidPos, asteroidCol] = useMemo(() => {
@@ -192,8 +203,8 @@ export default function SolarSystem() {
                 <SolarFlare key={i} rotation={rot as any} time={uniforms.time} />
             ))}
 
-            {/* 5. SUN LIGHT (Now casts shadows) */}
-            <pointLight color="#ff8800" intensity={4000} distance={1000} decay={1.5} castShadow />
+            {/* 5. SUN LIGHT (Now fades with visibility) */}
+            <pointLight color="#ff8800" intensity={4000 * visibility} distance={1000} decay={1.5} castShadow />
 
             {/* Planets & Belt */}
             {planets.map((planet, index) => (
