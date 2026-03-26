@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { ScrollControls, Scroll } from '@react-three/drei';
+import { ScrollControls, Scroll, Html } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import RealisticStars from './RealisticStars';
 import MilkyWayBand from './MilkyWayBand';
@@ -40,13 +40,11 @@ function App() {
             onLightingChange={setLighting}
           />
 
-          {/* Fixed UI Overlays (Restored <Scroll html> to prevent fiber crash) */}
-          <Scroll html>
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 100 }}>
-              <ScrollProgress />
-              <ScrollIndicator />
-            </div>
-          </Scroll>
+          {/* Fixed UI Overlays (Using Html to stay truly fixed) */}
+          <Html fullscreen style={{ pointerEvents: 'none', zIndex: 100 }}>
+            <ScrollProgress />
+            <ScrollIndicator />
+          </Html>
 
           <RealisticStars />
           <MilkyWayBand particlesCount={particlesCount} />
