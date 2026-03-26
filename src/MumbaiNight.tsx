@@ -105,13 +105,18 @@ export default function MumbaiNight() {
                 />
             </points>
 
-            {/* Ambient city glow */}
-            <spotLight position={[0, 40, -10]} color="#ffaa55" intensity={100} angle={Math.PI / 2} penumbra={1} decay={2} distance={100} />
+            {/* Ambient city glow (Warmer) */}
+            <spotLight position={[0, 50, 0]} color="#ffcc88" intensity={150} angle={Math.PI / 3} penumbra={1} decay={2} distance={200} />
 
-            {/* Arabian Sea */}
-            <mesh position={[-25, -0.5, 20]} rotation={[-Math.PI / 2, 0, 0]}>
-                <planeGeometry args={[120, 120]} />
-                <meshStandardMaterial color="#02040a" roughness={0.1} metalness={0.9} />
+            {/* Earth Surface (Curved Horizon) */}
+            <mesh position={[0, -500, 0]}>
+                <sphereGeometry args={[500, 128, 128, 0, Math.PI * 2, 0, 0.4]} />
+                <meshStandardMaterial
+                    color="#010208"
+                    roughness={0.8}
+                    metalness={0.2}
+                    emissive="#000000"
+                />
             </mesh>
 
         </group>

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 interface SceneControllerProps {
     onSectionChange: (name: string) => void;
-    onLightingChange: (data: { bloom: number, sun: number }) => void;
+    onLightingChange: (data: { bloom: number, sun: number, earth: number }) => void;
 }
 
 export default function SceneController({ onSectionChange, onLightingChange }: SceneControllerProps) {
@@ -24,19 +24,25 @@ export default function SceneController({ onSectionChange, onLightingChange }: S
 
         onSectionChange(sectionName);
 
-        // 2. Lighting Modulation (Visual Washout Fix)
+        // 2. Lighting/Scene Modulation
         let bloomInt = 1.2;
         let sunVis = 1.0;
+        let earthVis = 1.0;
+
+        if (offset > 0.7 && offset <= 0.9) {
+            // Fading Earth lights as we zoom into Mumbai city lights specifically
+            const p = (offset - 0.7) / 0.2;
+            earthVis = THREE.MathUtils.lerp(1.0, 0.2, p); // Keep a ghost of Earth
+        }
 
         if (offset > 0.8) {
-            // Transition from Mumbai Orbit (0.9) to Landing (1.0)
-            // Yellow fades to black over 0.5s equivalent scroll
             const p = (offset - 0.8) / 0.2;
             bloomInt = THREE.MathUtils.lerp(1.2, 0.3, Math.min(p * 2, 1));
             sunVis = THREE.MathUtils.lerp(1.0, 0, Math.min(p * 2, 1));
+            if (offset > 0.9) earthVis = 0; // Kill Earth lights entirely for landing
         }
 
-        onLightingChange({ bloom: bloomInt, sun: sunVis });
+        onLightingChange({ bloom: bloomInt, sun: sunVis, earth: earthVis });
 
         // 3. Camera Positioning (Smooth Lerping)
         let cameraZ = 60;

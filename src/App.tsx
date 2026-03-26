@@ -15,7 +15,7 @@ import AmbientSound from './AmbientSound';
 
 function App() {
   const [currentSection, setCurrentSection] = useState("Deep Space");
-  const [lighting, setLighting] = useState({ bloom: 1.2, sun: 1.0 });
+  const [lighting, setLighting] = useState({ bloom: 1.2, sun: 1.0, earth: 1.0 });
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000005' }}>
@@ -41,7 +41,7 @@ function App() {
           <AmbientDust />
 
           <SolarSystem visibility={lighting.sun} />
-          <EarthOrbit />
+          <EarthOrbit visibility={lighting.earth} />
           <MumbaiNight />
 
           {/* Post Processing */}
